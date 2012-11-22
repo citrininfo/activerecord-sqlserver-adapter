@@ -8,6 +8,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/sqlserver/core_ext/active_record'
 require 'active_record/connection_adapters/sqlserver/core_ext/database_statements'
 require 'active_record/connection_adapters/sqlserver/core_ext/explain'
+require 'active_record/connection_adapters/sqlserver/core_ext/relation'
 require 'active_record/connection_adapters/sqlserver/database_limits'
 require 'active_record/connection_adapters/sqlserver/database_statements'
 require 'active_record/connection_adapters/sqlserver/errors'
@@ -23,12 +24,11 @@ module ActiveRecord
     
     def self.sqlserver_connection(config) #:nodoc:
       config = config.symbolize_keys
-      config.reverse_merge! :mode => :dblib, :host => 'localhost', :username => 'sa', :password => ''
+      config.reverse_merge! :mode => :dblib
       mode = config[:mode].to_s.downcase.underscore.to_sym
       case mode
       when :dblib
         require 'tiny_tds'
-        warn("TinyTds v0.4.3 or higher required. Using #{TinyTds::VERSION}") unless TinyTds::Client.instance_methods.map(&:to_s).include?("active?")
       when :odbc
         raise ArgumentError, 'Missing :dsn configuration.' unless config.has_key?(:dsn)
         require 'odbc'

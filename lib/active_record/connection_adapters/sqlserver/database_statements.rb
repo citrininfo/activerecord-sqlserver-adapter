@@ -93,7 +93,11 @@ module ActiveRecord
         # === SQLServer Specific ======================================== #
         
         def execute_procedure(proc_name, *variables)
-          vars = variables.map{ |v| quote(v) }.join(', ')
+          vars = if variables.any? && variables.first.is_a?(Hash)
+                   variables.first.map { |k,v| "@#{k} = #{quote(v)}" }
+                 else
+                   variables.map { |v| quote(v) }
+                 end.join(', ')
           sql = "EXEC #{proc_name} #{vars}".strip
           name = 'Execute Procedure'
           log(sql, name) do
@@ -153,7 +157,7 @@ module ActiveRecord
                     WHEN 0 THEN NULL
                     WHEN 1 THEN 'READ UNCOMITTED' 
                     WHEN 2 THEN 'READ COMITTED' 
-                    WHEN 3 THEN 'REPEATABLE' 
+                    WHEN 3 THEN 'REPEATABLE READ' 
                     WHEN 4 THEN 'SERIALIZABLE' 
                     WHEN 5 THEN 'SNAPSHOT' END AS [isolation_level] 
                     FROM [sys].[dm_exec_sessions] 
